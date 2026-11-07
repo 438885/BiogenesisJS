@@ -4,6 +4,17 @@
   //#region 1: DOMBootstrap
   ((Namespace) => {
     const d = G.document;
+
+    G.coi = {
+      shouldRegister: () => !G.crossOriginIsolated,
+      shouldDeregister: () => false,
+      coepCredentialless: () => true,
+      coepDegrade: () => true,
+      doReload: () => G.location.reload(),
+      quiet: false,
+      ...G.coi,
+    };
+
     d.documentElement.className = 'h-full bg-neutral-950 text-neutral-200';
     d.head.innerHTML = `
       <meta charset="UTF-8" />
@@ -16,11 +27,21 @@
         .pixelated-canvas { image-rendering: -moz-crisp-edges; image-rendering: crisp-edges; image-rendering: pixelated; }
       </style>
     `;
+
+    if (!G.crossOriginIsolated && G.isSecureContext && 'serviceWorker' in G.navigator) {
+      const coiScript = d.createElement('script');
+      coiScript.src = './coi-serviceworker.min.js';
+      d.head.appendChild(coiScript);
+    }
+
     const tw = d.createElement('script');
+    tw.crossOrigin = 'anonymous';
     tw.src = 'https://unpkg.com/@tailwindcss/browser@4';
     d.head.appendChild(tw);
+
     d.body.className = 'm-0 h-full w-full font-mono text-xs bg-neutral-950 text-neutral-200 select-none overflow-hidden touch-none';
     d.body.innerHTML = '<div id="root" class="flex flex-col h-full w-full overflow-hidden"></div>';
+
     Object.assign(Namespace, { rootEl: d.getElementById('root') });
   })(_);
   //#endregion
